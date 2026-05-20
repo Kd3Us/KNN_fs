@@ -21,7 +21,10 @@ class KNN:
 			distances = []
 			for i in range(len(self.X_train)):
 				distance = self._euclidean_distance(point, self.X_train[i])
-				label = self.Y_train.iloc[i]
+				if hasattr(self.Y_train, "iloc"):
+					label = self.Y_train.iloc[i]
+				else:
+					label = self.Y_train[i]
 				distances.append((distance, label))
 			distances.sort(key=lambda pair: pair[0])
 
