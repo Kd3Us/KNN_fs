@@ -38,7 +38,30 @@ class KNN:
 			squared_sum += (point_a[i] - point_b[i]) ** 2
 		return math.sqrt(squared_sum)
 
-    
+	def _precision(self, Y_true, Y_pred, target_class):
+		true_positive = 0
+		false_positive = 0
+		for i in range(len(Y_true)):
+			if Y_pred[i] == target_class and Y_true[i] == target_class:
+				true_positive += 1
+			elif Y_pred[i] == target_class and Y_true[i] != target_class:
+				false_positive += 1
+		if true_positive + false_positive == 0:
+			return 0
+		return true_positive / (true_positive + false_positive)
+
+	def _recall(self, Y_true, Y_pred, target_class):
+		true_positive = 0
+		false_negative = 0
+		for i in range(len(Y_true)):
+			if Y_true[i] == target_class and Y_pred[i] == target_class:
+				true_positive += 1
+			elif Y_true[i] == target_class and Y_pred[i] != target_class:
+				false_negative += 1
+		if true_positive + false_negative == 0:
+			return 0
+		return true_positive / (true_positive + false_negative)
+
 
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
