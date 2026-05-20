@@ -38,6 +38,7 @@ class KNN:
 			squared_sum += (point_a[i] - point_b[i]) ** 2
 		return math.sqrt(squared_sum)
 
+    
 
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
