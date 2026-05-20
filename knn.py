@@ -46,6 +46,23 @@ class KNN:
 		print(f"F1 weighted : {score}")
 		return score
 
+	def grid_search(self, X, Y, n_neighbors_range, n_splits=10, random_state=42):
+		results = {}
+		for n_neighbors in n_neighbors_range:
+			print(f"Testing n_neighbors = {n_neighbors}")
+			candidate_knn_object = KNN(n_neighbors=n_neighbors)
+			mean_score, std_score = candidate_knn_object._cross_validation(X, Y, n_splits=n_splits, random_state=random_state)
+			results[n_neighbors] = mean_score
+			print("-"*20)
+
+		best_n_neighbors = max(results, key=results.get)
+		best_score = results[best_n_neighbors]
+		print(f"Best n_neighbors : {best_n_neighbors} with f1_weighted = {best_score}")
+
+		self.n_neighbors = best_n_neighbors
+		self.fit(X, Y)
+		return best_n_neighbors, best_score, results
+
 	def _euclidean_distance(self, point_a, point_b):
 		squared_sum = 0
 		for i in range(len(point_a)):
@@ -150,7 +167,6 @@ class KNN:
 			folds.append((X_train_fold, Y_train_fold, X_validation_fold, Y_validation_fold))
 		return folds
 
-
 	def _cross_validation(self, X, Y, n_splits=10, random_state=42):
 		folds = self._stratified_k_fold_split(X, Y, n_splits=n_splits, random_state=random_state)
 
@@ -176,8 +192,8 @@ class KNN:
 		print(f"Mean f1_weighted : {mean_score} +/- {std_score}")
 		return mean_score, std_score
 
+
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
-	knn_object = KNN(n_neighbors=5)
-	knn_object.fit(X_normalized, Y)
-	score = knn_object.evaluate(X_normalized[:100], Y.iloc[:100])
+	knn_object = KNN()
+	best_n_neighbors, best_score, results = knn_object.grid_search(X_normalized, Y, n_neighbors_range=range(1, 12, 2), n_splits=5)
