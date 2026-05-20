@@ -32,6 +32,17 @@ class KNN:
 			predictions.append(predicted_label)
 		return predictions
 
+
+	def evaluate(self, X_test, Y_test):
+		predictions = self.predict(X_test)
+		if hasattr(Y_test, "tolist"):
+			Y_test_list = Y_test.tolist()
+		else:
+			Y_test_list = list(Y_test)
+		score = self._f1_weighted(Y_test_list, predictions)
+		print(f"F1 weighted : {score}")
+		return score
+
 	def _euclidean_distance(self, point_a, point_b):
 		squared_sum = 0
 		for i in range(len(point_a)):
