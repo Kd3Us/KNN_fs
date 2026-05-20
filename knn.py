@@ -151,6 +151,31 @@ class KNN:
 		return folds
 
 
+	def _cross_validation(self, X, Y, n_splits=10, random_state=42):
+		folds = self._stratified_k_fold_split(X, Y, n_splits=n_splits, random_state=random_state)
+
+		scores = []
+		for fold_index in range(len(folds)):
+			X_train_fold, Y_train_fold, X_validation_fold, Y_validation_fold = folds[fold_index]
+
+			fold_knn_object = KNN(n_neighbors=self.n_neighbors)
+			fold_knn_object.fit(X_train_fold, Y_train_fold)
+			predictions = fold_knn_object.predict(X_validation_fold)
+			score = fold_knn_object._f1_weighted(Y_validation_fold, predictions)
+			scores.append(score)
+			print(f"Fold {fold_index + 1}/{n_splits} : f1_weighted = {score}")
+
+		mean_score = sum(scores) / len(scores)
+
+		variance = 0
+		for score in scores:
+			variance += (score - mean_score) ** 2
+		variance = variance / len(scores)
+		std_score = math.sqrt(variance)
+
+		print(f"Mean f1_weighted : {mean_score} +/- {std_score}")
+		return mean_score, std_score
+
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
 	knn_object = KNN(n_neighbors=5)
