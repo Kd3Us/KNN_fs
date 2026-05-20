@@ -14,6 +14,24 @@ class KNN:
 		self.X_train = X
 		self.Y_train = Y
 
+	def predict(self, X):
+		predictions = []
+		for point in X:
+			distances = []
+			for i in range(len(self.X_train)):
+				distance = self._euclidean_distance(point, self.X_train[i])
+				label = self.Y_train.iloc[i]
+				distances.append((distance, label))
+			distances.sort(key=lambda pair: pair[0])
+
+			nearest_labels = []
+			for i in range(self.n_neighbors):
+				nearest_labels.append(distances[i][1])
+
+			predicted_label = max(set(nearest_labels), key=nearest_labels.count)
+			predictions.append(predicted_label)
+		return predictions
+
 	def _euclidean_distance(self, point_a, point_b):
 		squared_sum = 0
 		for i in range(len(point_a)):
@@ -25,5 +43,6 @@ if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
 	knn_object = KNN(n_neighbors=5)
 	knn_object.fit(X_normalized, Y)
-	distance = knn_object._euclidean_distance(X_normalized[0], X_normalized[1])
-	print(f"Distance between point 0 and point 1 : {distance}")
+	predictions = knn_object.predict(X_normalized[:10])
+	print(f"Predictions : {predictions}")
+	print(f"True labels : {Y.iloc[:10].tolist()}")
