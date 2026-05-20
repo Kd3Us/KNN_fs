@@ -46,7 +46,7 @@ class KNN:
 		print(f"F1 weighted : {score}")
 		return score
 
-	def grid_search(self, X, Y, n_neighbors_range, n_splits=10, random_state=42):
+	def grid_search(self, X, Y, n_neighbors_range, n_splits=10, random_state=None):
 		results = {}
 		for n_neighbors in n_neighbors_range:
 			print(f"Testing n_neighbors = {n_neighbors}")
@@ -114,7 +114,7 @@ class KNN:
 			weighted_f1 += (support / total) * f1_class
 		return weighted_f1
 
-	def _stratified_k_fold_split(self, X, Y, n_splits=10, random_state=42):
+	def _stratified_k_fold_split(self, X, Y, n_splits=10, random_state=None):
 		if hasattr(Y, "tolist"):
 			Y_list = Y.tolist()
 		else:
@@ -167,7 +167,7 @@ class KNN:
 			folds.append((X_train_fold, Y_train_fold, X_validation_fold, Y_validation_fold))
 		return folds
 
-	def _cross_validation(self, X, Y, n_splits=10, random_state=42):
+	def _cross_validation(self, X, Y, n_splits=10, random_state=None):
 		folds = self._stratified_k_fold_split(X, Y, n_splits=n_splits, random_state=random_state)
 
 		scores = []
@@ -196,4 +196,9 @@ class KNN:
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
 	knn_object = KNN()
-	best_n_neighbors, best_score, results = knn_object.grid_search(X_normalized, Y, n_neighbors_range=range(1, 12, 2), n_splits=5)
+	best_n_neighbors, best_score, results = knn_object.grid_search(
+		X_normalized[:500],
+		Y.iloc[:500],
+		n_neighbors_range=range(1, 12, 2),
+		n_splits=5
+	)
