@@ -1,4 +1,5 @@
 import math
+import random
 
 from data_loader import load_normalized_data
 
@@ -31,7 +32,6 @@ class KNN:
 			predicted_label = max(set(nearest_labels), key=nearest_labels.count)
 			predictions.append(predicted_label)
 		return predictions
-
 
 	def evaluate(self, X_test, Y_test):
 		predictions = self.predict(X_test)
@@ -72,7 +72,7 @@ class KNN:
 		if true_positive + false_negative == 0:
 			return 0
 		return true_positive / (true_positive + false_negative)
-	
+
 	def _f1_weighted(self, Y_true, Y_pred):
 		classes = set(Y_true)
 		total = len(Y_true)
@@ -94,10 +94,62 @@ class KNN:
 			weighted_f1 += (support / total) * f1_class
 		return weighted_f1
 
+	def _stratified_k_fold_split(self, X, Y, n_splits=10, random_state=42):
+		if hasattr(Y, "tolist"):
+			Y_list = Y.tolist()
+		else:
+			Y_list = list(Y)
+
+		indices_by_class = {}
+		for i in range(len(Y_list)):
+			label = Y_list[i]
+			if label not in indices_by_class:
+				indices_by_class[label] = []
+			indices_by_class[label].append(i)
+
+		shuffler = random.Random(random_state)
+		for label in indices_by_class:
+			shuffler.shuffle(indices_by_class[label])
+
+		validation_indices_per_fold = []
+		for fold_index in range(n_splits):
+			validation_indices_per_fold.append([])
+
+		for label in indices_by_class:
+			class_indices = indices_by_class[label]
+			for position in range(len(class_indices)):
+				fold_index = position % n_splits
+				index = class_indices[position]
+				validation_indices_per_fold[fold_index].append(index)
+
+		folds = []
+		for fold_index in range(n_splits):
+			validation_indices = validation_indices_per_fold[fold_index]
+			validation_set = set(validation_indices)
+
+			train_indices = []
+			for i in range(len(X)):
+				if i not in validation_set:
+					train_indices.append(i)
+
+			X_train_fold = []
+			Y_train_fold = []
+			for i in train_indices:
+				X_train_fold.append(X[i])
+				Y_train_fold.append(Y_list[i])
+
+			X_validation_fold = []
+			Y_validation_fold = []
+			for i in validation_indices:
+				X_validation_fold.append(X[i])
+				Y_validation_fold.append(Y_list[i])
+
+			folds.append((X_train_fold, Y_train_fold, X_validation_fold, Y_validation_fold))
+		return folds
+
+
 if __name__ == "__main__":
 	X_normalized, Y, standard_scaler_object = load_normalized_data(file_path="bienetre.csv")
 	knn_object = KNN(n_neighbors=5)
 	knn_object.fit(X_normalized, Y)
-	predictions = knn_object.predict(X_normalized[:10])
-	print(f"Predictions : {predictions}")
-	print(f"True labels : {Y.iloc[:10].tolist()}")
+	score = knn_object.evaluate(X_normalized[:100], Y.iloc[:100])
